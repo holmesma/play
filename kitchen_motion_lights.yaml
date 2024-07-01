@@ -1,0 +1,91 @@
+blueprint:
+  name: Timed Motion-activated Dimmable Light
+  description: Turn on a light when motion is detected within a certain time contraint.
+  domain: automation
+  source_url: https://github.com/home-assistant/core/blob/dev/homeassistant/components/automation/blueprints/motion_light.yaml
+  input:
+    motion_entity:
+      name: Motion Sensor
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: motion
+    light_target:
+      name: Light
+      selector:
+        target:
+          entity:
+            domain: light
+    light_strength:
+      name: Light Strength
+      description: Light level for configured lamps on trigger.
+      default: 50
+      selector:
+        number:
+          min: 0
+          max: 100
+    light_transition_time:
+      name: 'Light Transition Time On/Off'
+      description: 'Configure the dimming speed in seconds.'
+      default: 0.1
+      selector:
+        number:
+          min: 0
+          max: 30
+          step: 1
+          mode: slider
+    time_from:
+      name: 'Timeslot from'
+      default: "22:00:00"
+      selector:
+        time:
+    time_to:
+      name: 'Timeslot to'
+      default: "07:00:00"
+      selector:
+        time:
+    no_motion_wait:
+      name: Wait time
+      description: Time to leave the light on after last motion is detected.
+      default: 120
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
+
+# If motion is detected within the delay,
+# we restart the script.
+mode: restart
+max_exceeded: silent
+
+trigger:
+  platform: state
+  entity_id: !input motion_entity
+  from: "off"
+  to: "on"
+
+condition:
+  - condition: time
+    after: !input time_from
+    before: !input time_to
+  - condition: state
+    entity_id: input_boolean.kitchen_boolean
+    state: "off"
+
+action:
+  - service: light.turn_on
+    target: !input light_target
+    data:
+      brightness_pct: !input light_strength
+      transition: !input light_transition_time
+  - wait_for_trigger:
+      platform: state
+      entity_id: !input motion_entity
+      from: "on"
+      to: "off"
+  - delay: !input no_motion_wait
+  - service: light.turn_off
+    target: !input light_target
+    data:
+      transition: !input light_transition_time
