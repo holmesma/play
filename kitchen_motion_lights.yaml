@@ -1,8 +1,8 @@
 blueprint:
-  name: Timed Motion-activated Dimmable Light
+  name: My Timed Motion-activated Dimmable Light
   description: Turn on a light when motion is detected within a certain time contraint.
   domain: automation
-  source_url: https://github.com/home-assistant/core/blob/dev/homeassistant/components/automation/blueprints/motion_light.yaml
+  source_url: https://gist.github.com/holmesma/207565d1b53a76be6c50241597cf70ec
   input:
     motion_entity:
       name: Motion Sensor
